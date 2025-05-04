@@ -1,0 +1,144 @@
+---
+title: "Time Spent On Campus"
+author: "Tegen Hilker Readman"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup,echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+setwd("~/Documents/time-at-school/")
+library(readxl)
+library(dplyr)
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(tidyr)
+library(janitor)
+library(scales)
+library(viridis)
+```
+
+```{r dataCleaning, echo=FALSE}
+semesterWiseDataCleaning <- function(data){
+  data <- data %>% 
+    mutate(
+      date = as.Date(date),
+      hour = format(as.POSIXct(time_at_school,format="%H:%M"),"%H"),
+      minute = format(as.POSIXct(time_at_school,format="%H:%M:"),"%M"),
+      minutes = as.numeric(minute) / 60,
+      hour = as.numeric(hour) + minutes
+    ) %>% group_by(date) %>% 
+    summarise(time_total = sum(hour,na.rm = TRUE)) %>% ungroup() 
+  
+  data <- data %>% mutate(day_of_week = weekdays(date)) %>% 
+    mutate(day_of_week = factor(day_of_week, levels = c("Sunday","Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")))
+  
+  return(data)
+  }
+  
+
+semesterPlot <- function(){
+  theme_minimal() + 
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    plot.caption = element_text(size = 7.5, face = "italic"),
+    plot.title = element_text(hjust = 0, size = 15),
+    plot.subtitle = element_text(hjust = 0, size = 10),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    axis.line.x = element_line(),
+    axis.line.y = element_line(),
+    axis.ticks = element_line(color = "gray"),
+    plot.margin = (unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+    
+    
+    
+  )
+}
+```
+
+
+```{r, echo=FALSE, included=FALSE,warning=FALSE,message=FALSE,out.width="100%",dpi=300,fig.align="center",fig.width = 10,fig.height=6}
+w25 <- read_excel("data/time_at_school.xlsx", sheet = "W25") %>% clean_names()
+w25Cleaned <- semesterWiseDataCleaning(w25)
+w25Cleaned$month <- month(w25Cleaned$date) 
+
+
+w25TotalGraph <- ggplot(w25Cleaned, aes(x = date, y = time_total, fill = day_of_week)) + 
+  geom_col() + 
+  scale_fill_viridis_d(option = "C", end =0.9) + 
+  theme_minimal() + 
+  scale_y_continuous(breaks = breaks_pretty(), expand = c(0, 0)) + 
+  scale_x_date(breaks = date_breaks("1 week"),labels = date_format("%b\n%d"),expand = c(0, 0))+
+  semesterPlot() +
+    labs(
+    title = "Time on Campus",
+    subtitle = "W25 Semester",
+    x = "",
+    y = "Hours",
+    caption = "Data and Graph: Tegen Hilker Readman"
+  ) + guides(fill = guide_legend(
+    keywidth = unit(0.5, "cm"),
+    keyheight = unit(.5, "cm"),
+    nrow = 1
+  ))
+
+ggsave(
+  "src/w25TotalGraph.png",
+  plot = w25TotalGraph,
+  width = 10,
+  height = 6,
+  dpi = 300,
+  bg = "white"
+)
+```
+
+```{r, echo=FALSE,out.width="100%",dpi=300,fig.align="center",fig.width = 10,fig.height=6}
+f24 <- read_excel("data/time_at_school.xlsx", sheet = "F24") %>% clean_names()
+
+
+f24Cleaned <- semesterWiseDataCleaning(f24)
+f24Cleaned$month <- month(f24Cleaned$date)
+
+
+f24TotalGraph <- ggplot(f24Cleaned) +
+  geom_col(aes(x = date, y = time_total, fill = day_of_week)) + scale_y_continuous(breaks = breaks_pretty(), expand = c(0, 0)) +
+  scale_x_date(
+    breaks = date_breaks("1 week"),
+    labels = date_format("%b\n%d"),
+    expand = c(0, 0)
+  ) + semesterPlot() + labs(
+    title = "Time on Campus",
+    subtitle = "F24 Semester",
+    x = "",
+    y = "Hours",
+    caption = "Data and Graph: Tegen Hilker Readman"
+  ) + guides(fill = guide_legend(
+    keywidth = unit(0.5, "cm"),
+    keyheight = unit(.5, "cm"),
+    nrow = 1
+  ))+scale_fill_viridis_d(option = "F", end =0.9) 
+
+
+
+
+
+ggsave(
+  "src/f24TotalGraph.png",
+  plot = f24TotalGraph,
+  width = 10,
+  height = 6,
+  dpi = 300,
+  bg = "white"
+)
+```
+
+```{r,echo=FALSE}
+print(f24TotalGraph)
+print(w25TotalGraph)
+
+```
