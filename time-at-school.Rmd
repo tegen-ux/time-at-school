@@ -125,8 +125,6 @@ f24TotalGraph <- ggplot(f24Cleaned) +
 
 
 
-
-
 ggsave(
   "src/f24TotalGraph.png",
   plot = f24TotalGraph,
