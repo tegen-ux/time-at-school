@@ -20,7 +20,7 @@ library(scales)
 library(viridis)
 ```
 
-```{r dataCleaning, echo=FALSE}
+```{r, echo=FALSE, included=FALSE,warning=FALSE,message=FALSE,out.width="100%",dpi=300,fig.align="center",fig.width = 10,fig.height=6}
 semesterWiseDataCleaning <- function(data){
   data <- data %>% 
     mutate(
@@ -97,7 +97,7 @@ ggsave(
 )
 ```
 
-```{r, echo=FALSE,out.width="100%",dpi=300,fig.align="center",fig.width = 10,fig.height=6}
+```{r, echo=FALSE, included=FALSE,warning=FALSE,message=FALSE,out.width="100%",dpi=300,fig.align="center",fig.width = 10,fig.height=6}
 f24 <- read_excel("data/time_at_school.xlsx", sheet = "F24") %>% clean_names()
 
 
@@ -135,7 +135,40 @@ ggsave(
 )
 ```
 
+```{r, echo=FALSE, included=FALSE,warning=FALSE,message=FALSE,out.width="100%",dpi=300,fig.align="center",fig.width = 10,fig.height=6}
+w24 <- read_excel("data/time_at_school.xlsx", sheet = "W24") %>% clean_names()
+
+w24Cleaned <- semesterWiseDataCleaning(w24)
+
+w24TotalGraph <- ggplot(w24Cleaned) +
+  geom_col(aes(x = date, y = time_total, fill = day_of_week)) + scale_y_continuous(breaks = breaks_pretty(), expand = c(0, 0)) +
+  scale_x_date(
+    breaks = date_breaks("1 week"),
+    labels = date_format("%b\n%d"),
+    expand = c(0, 0)
+  ) + semesterPlot() + labs(
+    title = "Time on Campus",
+    subtitle = "W24 Semester",
+    x = "",
+    y = "Hours",
+    caption = "Data and Graph: Tegen Hilker Readman"
+  ) + guides(fill = guide_legend(
+    keywidth = unit(0.5, "cm"),
+    keyheight = unit(.5, "cm"),
+    nrow = 1
+  )) + scale_fill_viridis_d(option = "mako", end = 0.8)
+ggsave("src/w24TotalGraph.png",
+  plot = w24TotalGraph,
+  width = 10,
+  height = 6,
+  dpi = 300,
+  bg = "white"
+)
+```
+
+
 ```{r,echo=FALSE}
+print(w24TotalGraph)
 print(f24TotalGraph)
 print(w25TotalGraph)
 
